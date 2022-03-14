@@ -1,26 +1,29 @@
 use actix_web::{get, web, App, HttpServer, Responder};
 
 
-
 mod client;
 mod rpc;
 
-use crate::rpc::{get_rpc_services, greet};
+use crate::client::{Client, Props};
+use crate::rpc::{
+    get_wftm_price,
+};
 
 
 #[tokio::main] // or #[tokio::main]
 async fn main() -> std::io::Result<()> {
-    let services = get_rpc_services().await;
+    let endpoint = match std::env::var("RPC") {
+        Ok(v) => v,
+        _ => String::from("https://rpcapi-tracing.fantom.network")
+    };
+    let app_data = Client::new(Props { node_rpc: endpoint }).await;
 
-    HttpServer::new(|| {
+    HttpServer::new(move || {
         let app = App::new()
-            .route("/hello", web::get().to(|| async { "Hello World!" }));
+            .app_data(web::Data::new(app_data.clone()))
+            .service(get_wftm_price);
 
-
-        app.service(greet)
-        // services.into_iter().map(|x| { app.service(x) })
-
-        // app.service(services[0])
+        app
     })
     .bind(("0.0.0.0", 8881))?
     .run()

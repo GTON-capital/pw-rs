@@ -1,24 +1,32 @@
-// use std::lazy::Lazy;
+use std::sync::Arc;
 
 use actix_web::{get, web, App, HttpServer, Responder};
 use actix_web::dev::HttpServiceFactory;
 
 
-#[get("/hello/{name}")]
-pub async fn greet(name: web::Path<String>) -> impl Responder {
-    format!("Hello {name}!")
+use serde_derive::{Serialize, Deserialize};
+
+use crate::client::{Client, Props};
+
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Response {
+    pub result: f64,
 }
 
 
+#[get("/rpc/base-price")]
+pub async fn get_wftm_price(client: web::Data<Client>) -> impl Responder {
+  let result = client.get_wftm_price().await;
+  format!("{:?}", Response { result })
+}
 
 
-
-pub async fn get_rpc_services() -> Vec<impl HttpServiceFactory> {
-  // vec![
-  //   greet
-  // ]
-
-  let mut r = vec![];
-  r.push(greet);
-  r
+#[get("/rpc/owned/base-pool-lps")]
+pub async fn get_wftm_gton_gc_pool_lp(client: web::Data<Client>) -> impl Responder {
+  let client_l = Box::into_raw(Box::new(client));
+  let x = unsafe { Box::from_raw(client_l) };
+  let r = Box::leak(x).get_wftm_gton_gc_pool_lp().await;
+  format!("{:}", r)
 }
