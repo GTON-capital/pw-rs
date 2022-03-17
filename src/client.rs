@@ -335,23 +335,25 @@ impl Client {
     // return sum([self.getFtmGtonLiq()*self.getFtmGtonGCpolLP()/self.getFtmGtonLP(), self.getUsdGtonLiq()*self.getUsdGtonGCpolLP()/self.getUsdGtonLP()])
 
     pub async fn get_gc_pol(&'static self) -> f64 {
-        let (ftm_gton_liq, ftm_gton_gc_pol_lp, ftm_gton_lp, usdc_gton_liq, usdc_gton_lp): (
+        let (ftm_gton_liq, ftm_gton_gc_pol_lp, ftm_gton_lp, usdc_gton_liq, usdc_gton_lp, usdc_gton_gc_pol_lp): (
             f64,
             f64,
             f64,
             f64,
             f64,
+            f64
         ) = tokio::join!(
             self.get_ftm_gton_liq(),
             self.get_wftm_gton_gc_pool_lp(),
             self.get_ftm_gton_lp(),
             self.get_usdc_gton_liq(),
-            self.get_usdc_gton_lp()
+            self.get_usdc_gton_lp(),
+            self.get_usdc_gton_gc_pool_lp()
         );
 
         let sum_of = vec![
-            ftm_gton_liq * ftm_gton_gc_pol_lp * ftm_gton_lp,
-            usdc_gton_liq * usdc_gton_liq / usdc_gton_lp,
+            ftm_gton_liq * ftm_gton_gc_pol_lp / ftm_gton_lp,
+            usdc_gton_liq * usdc_gton_gc_pol_lp / usdc_gton_lp,
         ]
         .into_iter()
         .sum();
@@ -400,14 +402,16 @@ impl Client {
     pub async fn get_gc_pw_current_peg_ftm(&'static self) -> f64 {
         let (gc_pol, wftm_price) = tokio::join!(self.get_gc_pol(), self.get_wftm_price());
 
-        self.get_pw_model_with_pol_mln(
-            gc_pol / 10f64.powf(6.0) / wftm_price,
+        let pw_model_pol = self.get_pw_model_with_pol_mln(
+            gc_pol / 10f64.powf(6.0),
             2.05,
             1.7,
             600.0,
             550.0,
         )
-        .await
+        .await;
+
+        pw_model_pol / wftm_price
     }
 
     pub async fn get_gton_usdc_price(&'static self) -> f64 {

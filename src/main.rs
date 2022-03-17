@@ -12,6 +12,9 @@ async fn main() -> std::io::Result<()> {
         Ok(v) => v,
         _ => String::from("https://rpcapi-tracing.fantom.network"),
     };
+
+    println!("rpc being used: {:}", endpoint);
+
     let app_data = Client::new(Props { node_rpc: endpoint }).await;
 
     HttpServer::new(move || {
