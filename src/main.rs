@@ -16,10 +16,6 @@ async fn main() -> std::io::Result<()> {
     };
     let app_data = Client::new(Props { node_rpc: endpoint }).await;
 
-
-    // let client_l = Box::into_raw(Box::new(vec![get_wftm_price]));
-    // let x = unsafe { Box::from_raw(client_l) };
-
     HttpServer::new(move || {
         let app = App::new()
             .app_data(web::Data::new(app_data.clone()))

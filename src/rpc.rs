@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
-use actix_web::{get, web, App, HttpServer, Responder};
+use actix_web::{get, web, App, HttpServer, HttpResponse, Responder};
+use actix_web::http::{StatusCode, header, header::*};
 use actix_web::dev::HttpServiceFactory;
 
 
@@ -9,17 +10,27 @@ use serde_derive::{Serialize, Deserialize};
 use crate::client::{Client, Props};
 
 
+fn apply_headers<B>(resp: &mut HttpResponse<B>) {
+  resp.headers_mut().insert(header::CONTENT_TYPE, HeaderValue::from_static("application/json"));
+  resp.headers_mut().insert(HeaderName::from_lowercase(b"access-control-allow-origin").unwrap(), HeaderValue::from_static("*"));
+  resp.headers_mut().insert(HeaderName::from_lowercase(b"access-control-allow-headers").unwrap(), HeaderValue::from_static("*"));
+  resp.headers_mut().insert(HeaderName::from_lowercase(b"access-control-allow-methods").unwrap(), HeaderValue::from_static("*"));
+}
+
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Response {
-    pub result: f64,
+pub struct Response<T> {
+    pub result: T,
 }
 
 
 #[get("/rpc/base-price")]
 pub async fn get_wftm_price(client: web::Data<Client>) -> impl Responder {
   let result = client.get_wftm_price().await;
-  format!("{:?}", Response { result })
+
+  let mut resp = HttpResponse::with_body(StatusCode::from_u16(200).unwrap(), serde_json::to_string(&Response { result }).unwrap());
+  apply_headers(&mut resp);
+  resp
 }
 
 
@@ -27,8 +38,11 @@ pub async fn get_wftm_price(client: web::Data<Client>) -> impl Responder {
 pub async fn get_wftm_gton_gc_pool_lp(client: web::Data<Client>) -> impl Responder {
   let client_l = Box::into_raw(Box::new(client));
   let x = unsafe { Box::from_raw(client_l) };
-  let r = Box::leak(x).get_wftm_gton_gc_pool_lp().await;
-  format!("{:}", r)
+  let result = Box::leak(x).get_wftm_gton_gc_pool_lp().await;
+
+  let mut resp = HttpResponse::with_body(StatusCode::from_u16(200).unwrap(), serde_json::to_string(&Response { result }).unwrap());
+  apply_headers(&mut resp);
+  resp
 }
 
 
@@ -36,8 +50,11 @@ pub async fn get_wftm_gton_gc_pool_lp(client: web::Data<Client>) -> impl Respond
 pub async fn get_usdc_gton_gc_pool_lp(client: web::Data<Client>) -> impl Responder {
   let client_l = Box::into_raw(Box::new(client));
   let x = unsafe { Box::from_raw(client_l) };
-  let r = Box::leak(x).get_usdc_gton_gc_pool_lp().await;
-  format!("{:}", r)
+  let result = Box::leak(x).get_usdc_gton_gc_pool_lp().await;
+
+  let mut resp = HttpResponse::with_body(StatusCode::from_u16(200).unwrap(), serde_json::to_string(&Response { result }).unwrap());
+  apply_headers(&mut resp);
+  resp
 }
 
 
@@ -45,8 +62,11 @@ pub async fn get_usdc_gton_gc_pool_lp(client: web::Data<Client>) -> impl Respond
 pub async fn get_ftm_gton_liq(client: web::Data<Client>) -> impl Responder {
   let client_l = Box::into_raw(Box::new(client));
   let x = unsafe { Box::from_raw(client_l) };
-  let r = Box::leak(x).get_ftm_gton_liq().await;
-  format!("{:}", r)
+  let result = Box::leak(x).get_ftm_gton_liq().await;
+
+  let mut resp = HttpResponse::with_body(StatusCode::from_u16(200).unwrap(), serde_json::to_string(&Response { result }).unwrap());
+  apply_headers(&mut resp);
+  resp
 }
 
 
@@ -54,8 +74,11 @@ pub async fn get_ftm_gton_liq(client: web::Data<Client>) -> impl Responder {
 pub async fn get_usdc_gton_liq(client: web::Data<Client>) -> impl Responder {
   let client_l = Box::into_raw(Box::new(client));
   let x = unsafe { Box::from_raw(client_l) };
-  let r = Box::leak(x).get_usdc_gton_liq().await;
-  format!("{:}", r)
+  let result = Box::leak(x).get_usdc_gton_liq().await;
+
+  let mut resp = HttpResponse::with_body(StatusCode::from_u16(200).unwrap(), serde_json::to_string(&Response { result }).unwrap());
+  apply_headers(&mut resp);
+  resp
 }
 
 
@@ -63,8 +86,11 @@ pub async fn get_usdc_gton_liq(client: web::Data<Client>) -> impl Responder {
 pub async fn get_ftm_gton_lp(client: web::Data<Client>) -> impl Responder {
   let client_l = Box::into_raw(Box::new(client));
   let x = unsafe { Box::from_raw(client_l) };
-  let r = Box::leak(x).get_ftm_gton_lp().await;
-  format!("{:}", r)
+  let result = Box::leak(x).get_ftm_gton_lp().await;
+
+  let mut resp = HttpResponse::with_body(StatusCode::from_u16(200).unwrap(), serde_json::to_string(&Response { result }).unwrap());
+  apply_headers(&mut resp);
+  resp
 }
 
 
@@ -72,8 +98,11 @@ pub async fn get_ftm_gton_lp(client: web::Data<Client>) -> impl Responder {
 pub async fn get_gc_pol(client: web::Data<Client>) -> impl Responder {
   let client_l = Box::into_raw(Box::new(client));
   let x = unsafe { Box::from_raw(client_l) };
-  let r = Box::leak(x).get_gc_pol().await;
-  format!("{:}", r)
+  let result = Box::leak(x).get_gc_pol().await;
+
+  let mut resp = HttpResponse::with_body(StatusCode::from_u16(200).unwrap(), serde_json::to_string(&Response { result }).unwrap());
+  apply_headers(&mut resp);
+  resp
 }
 
 
@@ -92,27 +121,37 @@ pub async fn get_gc_pol(client: web::Data<Client>) -> impl Responder {
 //     float(gcMaxP or 0),
 //     float(gcMaxL or 1)
 //   ))
-#[derive(Deserialize)]
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct PWModelQueryArgs {
   pub pol: f64,
+  #[serde(rename(serialize = "gcFloor"))]
   pub gc_floor: f64,
+  #[serde(rename(serialize = "gcBias"))]
   pub gc_bias: f64,
+  #[serde(rename(serialize = "gcMaxP"))]
   pub gc_max_p: f64,
+  #[serde(rename = "gcMaxL")]
   pub gc_max_l: f64,
 }
 
+
 #[get("/rpc/pw-model-peg-with-pol-mln")]
-pub async fn get_pw_model_with_pol_mln(client: web::Data<Client>, payload: web::Query<PWModelQueryArgs>) -> impl Responder {
+pub async fn get_pw_model_with_pol_mln(payload: web::Query<PWModelQueryArgs>, client: web::Data<Client>) -> impl Responder {
   let client_l = Box::into_raw(Box::new(client));
   let x = unsafe { Box::from_raw(client_l) };
-  let r = Box::leak(x).get_pw_model_with_pol_mln(
+  let result = Box::leak(x).get_pw_model_with_pol_mln(
     payload.pol,
     payload.gc_floor,
     payload.gc_bias,
     payload.gc_max_p,
     payload.gc_max_l,
   ).await;
-  format!("{:}", r)
+
+  let mut resp = HttpResponse::with_body(StatusCode::from_u16(200).unwrap(), serde_json::to_string(&Response { result }).unwrap());
+  apply_headers(&mut resp);
+  resp
 }
 
 
@@ -120,8 +159,11 @@ pub async fn get_pw_model_with_pol_mln(client: web::Data<Client>, payload: web::
 pub async fn get_gc_pw_current_peg_usd(client: web::Data<Client>) -> impl Responder {
   let client_l = Box::into_raw(Box::new(client));
   let x = unsafe { Box::from_raw(client_l) };
-  let r = Box::leak(x).get_gc_pw_current_peg_usd().await;
-  format!("{:}", r)
+  let result = Box::leak(x).get_gc_pw_current_peg_usd().await;
+
+  let mut resp = HttpResponse::with_body(StatusCode::from_u16(200).unwrap(), serde_json::to_string(&Response { result }).unwrap());
+  apply_headers(&mut resp);
+  resp
 }
 
 // @app.route('/rpc/gc-current-peg-base', methods=['GET'])
@@ -131,8 +173,11 @@ pub async fn get_gc_pw_current_peg_usd(client: web::Data<Client>) -> impl Respon
 pub async fn get_gc_pw_current_peg_ftm(client: web::Data<Client>) -> impl Responder {
   let client_l = Box::into_raw(Box::new(client));
   let x = unsafe { Box::from_raw(client_l) };
-  let r = Box::leak(x).get_gc_pw_current_peg_ftm().await;
-  format!("{:}", r)
+  let result = Box::leak(x).get_gc_pw_current_peg_ftm().await;
+
+  let mut resp = HttpResponse::with_body(StatusCode::from_u16(200).unwrap(), serde_json::to_string(&Response { result }).unwrap());
+  apply_headers(&mut resp);
+  resp
 }
 
 
@@ -143,8 +188,11 @@ pub async fn get_gc_pw_current_peg_ftm(client: web::Data<Client>) -> impl Respon
 pub async fn get_gton_usdc_price(client: web::Data<Client>) -> impl Responder {
   let client_l = Box::into_raw(Box::new(client));
   let x = unsafe { Box::from_raw(client_l) };
-  let r = Box::leak(x).get_gton_usdc_price().await;
-  format!("{:}", r)
+  let result = Box::leak(x).get_gton_usdc_price().await;
+
+  let mut resp = HttpResponse::with_body(StatusCode::from_u16(200).unwrap(), serde_json::to_string(&Response { result }).unwrap());
+  apply_headers(&mut resp);
+  resp
 }
 
 
@@ -155,6 +203,9 @@ pub async fn get_gton_usdc_price(client: web::Data<Client>) -> impl Responder {
 pub async fn get_gton_wftm_price(client: web::Data<Client>) -> impl Responder {
   let client_l = Box::into_raw(Box::new(client));
   let x = unsafe { Box::from_raw(client_l) };
-  let r = Box::leak(x).get_gton_wftm_price().await;
-  format!("{:}", r)
+  let result = Box::leak(x).get_gton_wftm_price().await;
+
+  let mut resp = HttpResponse::with_body(StatusCode::from_u16(200).unwrap(), serde_json::to_string(&Response { result }).unwrap());
+  apply_headers(&mut resp);
+  resp
 }
