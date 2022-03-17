@@ -1,5 +1,5 @@
 [package]
-name = "py-rs"
+name = "pw-rs"
 version = "0.1.0"
 edition = "2021"
 
