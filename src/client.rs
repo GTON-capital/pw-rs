@@ -82,6 +82,7 @@ pub struct Props {
 }
 
 #[derive(Clone)]
+#[allow(dead_code)]
 pub struct Client {
     props: Props,
     web3: Web3<web3::transports::Http>,
@@ -124,14 +125,8 @@ impl Client {
     }
 
     pub async fn new(props: Props) -> Self {
-        // let endpoint = std::env::var(props.node_rpc).unwrap();
         let transport = web3::transports::Http::new(props.node_rpc.as_str()).unwrap();
         let web3 = web3::Web3::new(transport);
-
-        // const PANCAKESWAPV2_ROUTER: &str = "10ed43c718714eb63d5aa57b78b54704e256024e";
-        // // let decoded_address = hex::decode(PANCAKESWAPV2_ROUTER).expect("Decoding failed");
-        // let decoded_address = decode_addr(PANCAKESWAPV2_ROUTER);
-        // let from = decode_addr("3718eCd4E97f4332F9652D0Ba224f228B55ec543");
 
         let uniswap_pair_abi = tokio::fs::read(Path::new("./abi/UniswapV2Pair.json"))
             .await
@@ -148,27 +143,27 @@ impl Client {
         }
     }
 
-    // fgSpiLP = { tid: '0x25f5b3840d414a21c4fc46d21699e54d48f75fdd', dec: 18 }
-    // fToken = { tid: '0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83', dec: 18 }
-    // gToken = { tid: '0xC1Be9a4D5D45BeeACAE296a7BD5fADBfc14602C4', dec: 18 }
-    // uToken = { tid: '0x04068da6c83afcfa0e13ba15a6696662335d5b75', dec: 6 }
-    // fuSpoLP = { tid: '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c', dec: 18 }
-    // ugSpoLP = { tid: '0xb9b452A71Dd1cfB4952d90e03bf701A6C7Ae263b', dec: 18 }
+    // FG_SPI_LP = { tid: '0x25f5b3840d414a21c4fc46d21699e54d48f75fdd', dec: 18 }
+    // F_TOKEN = { tid: '0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83', dec: 18 }
+    // G_TOKEN = { tid: '0xC1Be9a4D5D45BeeACAE296a7BD5fADBfc14602C4', dec: 18 }
+    // U_TOKEN = { tid: '0x04068da6c83afcfa0e13ba15a6696662335d5b75', dec: 6 }
+    // FU_SPO_LP = { tid: '0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c', dec: 18 }
+    // UG_SPO_LP = { tid: '0xb9b452A71Dd1cfB4952d90e03bf701A6C7Ae263b', dec: 18 }
 
-    const fgSpiLP: &'static InternalToken =
+    const FG_SPI_LP: &'static InternalToken =
         &InternalToken("0x25f5b3840d414a21c4fc46d21699e54d48f75fdd", 18);
-    const fToken: &'static InternalToken =
+    const F_TOKEN: &'static InternalToken =
         &InternalToken("0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83", 18);
-    const gToken: &'static InternalToken =
+    const G_TOKEN: &'static InternalToken =
         &InternalToken("0xC1Be9a4D5D45BeeACAE296a7BD5fADBfc14602C4", 18);
-    const uToken: &'static InternalToken =
+    const U_TOKEN: &'static InternalToken =
         &InternalToken("0x04068da6c83afcfa0e13ba15a6696662335d5b75", 6);
-    const fuSpoLP: &'static InternalToken =
+    const FU_SPO_LP: &'static InternalToken =
         &InternalToken("0x2b4c76d0dc16be1c31d4c1dc53bf9b45987fc75c", 18);
-    const ugSpoLP: &'static InternalToken =
+    const UG_SPO_LP: &'static InternalToken =
         &InternalToken("0xb9b452A71Dd1cfB4952d90e03bf701A6C7Ae263b", 18);
 
-    const gcAccs: &'static [&'static str; 3] = &[
+    const GC_ACCS: &'static [&'static str; 3] = &[
         "0xB3D22267E7260ec6c3931d50D215ABa5Fd54506a",
         "0xbb652A9FAc95B5203f44aa3492200b6aE6aD84e0",
         "0xd196B496425Be880BA63AcE90C60258b9A52b044",
@@ -222,9 +217,9 @@ impl Client {
     }
 
     pub async fn get_wftm_price(&self) -> f64 {
-        let u_token = Self::uToken.clone();
-        let fu_spo_lp = Self::fuSpoLP.clone();
-        let f_token = Self::fToken.clone();
+        let u_token = Self::U_TOKEN.clone();
+        let fu_spo_lp = Self::FU_SPO_LP.clone();
+        let f_token = Self::F_TOKEN.clone();
 
         println!("{:?}", u_token.0);
         println!("{:?}", fu_spo_lp.0);
@@ -237,8 +232,8 @@ impl Client {
     }
 
     pub async fn get_wftm_gton_gc_pool_lp(&'static self) -> f64 {
-        let fg_spi_LP = Self::fgSpiLP.clone();
-        let gc_accs = Self::gcAccs.clone();
+        let fg_spi_lp = Self::FG_SPI_LP.clone();
+        let gc_accs = Self::GC_ACCS.clone();
 
         let n = gc_accs.len();
 
@@ -250,7 +245,7 @@ impl Client {
 
             let handle = tokio::task::spawn(async move {
                 let x = gc_accs[i];
-                let r = self.get_erc20token_balance(fg_spi_LP.0, x).await;
+                let r = self.get_erc20token_balance(fg_spi_lp.0, x).await;
                 *sum_of_c.write().unwrap() += r;
             });
 
@@ -265,8 +260,8 @@ impl Client {
     }
 
     pub async fn get_usdc_gton_gc_pool_lp(&'static self) -> f64 {
-        let ug_spo_lp = Self::ugSpoLP.clone();
-        let gc_accs = Self::gcAccs.clone();
+        let ug_spo_lp = Self::UG_SPO_LP.clone();
+        let gc_accs = Self::GC_ACCS.clone();
 
         let n = gc_accs.len();
 
@@ -293,8 +288,8 @@ impl Client {
     }
 
     pub async fn get_ftm_gton_liq(&self) -> f64 {
-        let fg_spi_lp = Self::fgSpiLP.clone();
-        let f_token = Self::fToken.clone();
+        let fg_spi_lp = Self::FG_SPI_LP.clone();
+        let f_token = Self::F_TOKEN.clone();
 
         let wftm_price = self.get_wftm_price().await;
         let f_token_balance_of_fg_spi_lp =
@@ -304,8 +299,8 @@ impl Client {
     }
 
     pub async fn get_usdc_gton_liq(&self) -> f64 {
-        let g_token = Self::gToken.clone();
-        let ug_spo_lp = Self::ugSpoLP.clone();
+        let g_token = Self::G_TOKEN.clone();
+        let ug_spo_lp = Self::UG_SPO_LP.clone();
 
         let balance_of = self.get_erc20token_balance(g_token.0, ug_spo_lp.0).await;
 
@@ -315,18 +310,18 @@ impl Client {
     // def getFtmGtonLP(self):
     //   tid = self.tid
     //   dec = self.dec
-    //   fgSpiLP = self.fgSpiLP
+    //   FG_SPI_LP = self.FG_SPI_LP
 
-    //   return self.apiFtmSanGetTokenSupply(fgSpiLP[tid], fgSpiLP[dec])
+    //   return self.apiFtmSanGetTokenSupply(FG_SPI_LP[tid], FG_SPI_LP[dec])
 
     pub async fn get_ftm_gton_lp(&self) -> f64 {
-        let fg_spi_lp = Self::fgSpiLP.clone();
+        let fg_spi_lp = Self::FG_SPI_LP.clone();
 
         self.get_erc20token_supply(fg_spi_lp.0).await
     }
 
     pub async fn get_usdc_gton_lp(&self) -> f64 {
-        let ug_spo_lp = Self::ugSpoLP.clone();
+        let ug_spo_lp = Self::UG_SPO_LP.clone();
 
         self.get_erc20token_supply(ug_spo_lp.0).await
     }
@@ -335,14 +330,14 @@ impl Client {
     // return sum([self.getFtmGtonLiq()*self.getFtmGtonGCpolLP()/self.getFtmGtonLP(), self.getUsdGtonLiq()*self.getUsdGtonGCpolLP()/self.getUsdGtonLP()])
 
     pub async fn get_gc_pol(&'static self) -> f64 {
-        let (ftm_gton_liq, ftm_gton_gc_pol_lp, ftm_gton_lp, usdc_gton_liq, usdc_gton_lp, usdc_gton_gc_pol_lp): (
-            f64,
-            f64,
-            f64,
-            f64,
-            f64,
-            f64
-        ) = tokio::join!(
+        let (
+            ftm_gton_liq,
+            ftm_gton_gc_pol_lp,
+            ftm_gton_lp,
+            usdc_gton_liq,
+            usdc_gton_lp,
+            usdc_gton_gc_pol_lp,
+        ): (f64, f64, f64, f64, f64, f64) = tokio::join!(
             self.get_ftm_gton_liq(),
             self.get_wftm_gton_gc_pool_lp(),
             self.get_ftm_gton_lp(),
@@ -402,22 +397,17 @@ impl Client {
     pub async fn get_gc_pw_current_peg_ftm(&'static self) -> f64 {
         let (gc_pol, wftm_price) = tokio::join!(self.get_gc_pol(), self.get_wftm_price());
 
-        let pw_model_pol = self.get_pw_model_with_pol_mln(
-            gc_pol / 10f64.powf(6.0),
-            2.05,
-            1.7,
-            600.0,
-            550.0,
-        )
-        .await;
+        let pw_model_pol = self
+            .get_pw_model_with_pol_mln(gc_pol / 10f64.powf(6.0), 2.05, 1.7, 600.0, 550.0)
+            .await;
 
         pw_model_pol / wftm_price
     }
 
     pub async fn get_gton_usdc_price(&'static self) -> f64 {
         let (amount_u, amount_g) = tokio::join!(
-            self.get_erc20token_balance(Self::uToken.0, Self::ugSpoLP.0),
-            self.get_erc20token_balance(Self::gToken.0, Self::ugSpoLP.0)
+            self.get_erc20token_balance(Self::U_TOKEN.0, Self::UG_SPO_LP.0),
+            self.get_erc20token_balance(Self::G_TOKEN.0, Self::UG_SPO_LP.0)
         );
 
         amount_u / amount_g
@@ -425,8 +415,8 @@ impl Client {
 
     pub async fn get_gton_wftm_price(&'static self) -> f64 {
         let (amount_g, amount_f) = tokio::join!(
-            self.get_erc20token_balance(Self::gToken.0, Self::fgSpiLP.0),
-            self.get_erc20token_balance(Self::fToken.0, Self::fgSpiLP.0)
+            self.get_erc20token_balance(Self::G_TOKEN.0, Self::FG_SPI_LP.0),
+            self.get_erc20token_balance(Self::F_TOKEN.0, Self::FG_SPI_LP.0)
         );
 
         amount_f / amount_g
